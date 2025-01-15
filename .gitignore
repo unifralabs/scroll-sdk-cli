@@ -22,5 +22,6 @@ charts
 /.vscode
 
 e2e_resume*
+.local-docs/
 
 
