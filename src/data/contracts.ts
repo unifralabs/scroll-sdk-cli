@@ -27,7 +27,7 @@ export const contracts: DeployedContract[] = [
   {name: 'L1_ZKEVM_VERIFIER_V2_ADDR', initializes: false, owned: false, layer: Layer.L1},
   {name: 'L1_MULTIPLE_VERSION_ROLLUP_VERIFIER_ADDR', initializes: false, owned: true, layer: Layer.L1},
   {name: 'L1_MESSAGE_QUEUE_IMPLEMENTATION_ADDR', initializes: false, owned: false, layer: Layer.L1},
-  {name: 'L1_MESSAGE_QUEUE_PROXY_ADDR', initializes: true, owned: true, layer: Layer.L1},
+  {name: 'L1_MESSAGE_QUEUE_V2_PROXY_ADDR', initializes: true, owned: true, layer: Layer.L1},
   {name: 'L1_GATEWAY_ROUTER_IMPLEMENTATION_ADDR', initializes: false, owned: false, layer: Layer.L1},
   {name: 'L1_GATEWAY_ROUTER_PROXY_ADDR', initializes: true, owned: true, layer: Layer.L1},
   {
@@ -117,7 +117,7 @@ export const contracts: DeployedContract[] = [
 //     { name: "L1_ZKEVM_VERIFIER_V1_ADDR", initializes: false, owned: false },
 //     { name: "L1_MULTIPLE_VERSION_ROLLUP_VERIFIER_ADDR", initializes: false, owned: true },
 //     { name: "L1_MESSAGE_QUEUE_IMPLEMENTATION_ADDR", initializes: false, owned: false },
-//     { name: "L1_MESSAGE_QUEUE_PROXY_ADDR", initializes: true, owned: true },
+//     { name: "L1_MESSAGE_QUEUE_V2_PROXY_ADDR", initializes: true, owned: true },
 //     { name: "L1_GATEWAY_ROUTER_IMPLEMENTATION_ADDR", initializes: false, owned: false },
 //     { name: "L1_GATEWAY_ROUTER_PROXY_ADDR", initializes: true, owned: true },
 //     { name: "L1_ETH_GATEWAY_IMPLEMENTATION_ADDR", initializes: false, owned: false },
