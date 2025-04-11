@@ -275,7 +275,7 @@ export default class TestE2e extends Command {
       this.l2ETHGateway = contractsConfig.L2_ETH_GATEWAY_PROXY_ADDR
       this.l1GatewayRouter = contractsConfig.L1_GATEWAY_ROUTER_PROXY_ADDR
       this.l2GatewayRouter = contractsConfig.L2_GATEWAY_ROUTER_PROXY_ADDR
-      this.l1MessegeQueueProxyAddress = contractsConfig.L1_MESSAGE_QUEUE_PROXY_ADDR
+      this.l1MessegeQueueProxyAddress = contractsConfig.L1_MESSAGE_QUEUE_V2_PROXY_ADDR
       this.l1Messenger = contractsConfig.L1_SCROLL_MESSENGER_PROXY_ADDR
       this.mockFinalizeEnabled = config?.general.TEST_ENV_MOCK_FINALIZE_ENABLED === 'true'
       this.mockFinalizeTimeout = config?.general.TEST_ENV_MOCK_FINALIZE_TIMEOUT_SEC ?? 0
