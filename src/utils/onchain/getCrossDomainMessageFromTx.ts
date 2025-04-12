@@ -19,6 +19,7 @@ export async function getCrossDomainMessageFromTx(
   const receipt = await provider.getTransactionReceipt(tx);
   if (!receipt) throw new Error('Transaction not found');
 
+
   const queueTransactionLog = receipt.logs.find(log =>
     log.address.toLowerCase() === l1MessageQueueProxyAddress.toLowerCase()
   );
@@ -32,11 +33,12 @@ export async function getCrossDomainMessageFromTx(
   const queueIndex = decodedLog[1];
 
   const l1MessageQueueABI = [
-    "function getCrossDomainMessage(uint256) view returns (bytes32)"
+    //"function getCrossDomainMessage(uint256) view returns (bytes32)",
+    "function getMessageRollingHash(uint256 queueIndex) external view returns (bytes32 hash)"
   ];
   const l1MessageQueue = new Contract(l1MessageQueueProxyAddress, l1MessageQueueABI, provider);
 
-  const l2TxHash = await l1MessageQueue.getCrossDomainMessage(queueIndex);
+  const l2TxHash = await l1MessageQueue.getMessageRollingHash(queueIndex);
 
-  return { queueIndex, l2TxHash };
+  return {l2TxHash,queueIndex };
 }
