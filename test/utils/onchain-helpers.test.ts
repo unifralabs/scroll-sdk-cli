@@ -38,7 +38,8 @@ describe('Onchain Helpers', () => {
       };
       providerStub.getTransactionReceipt.resolves(mockReceipt as unknown as TransactionReceipt);
       
-      const contractStub = sinon.stub(Contract.prototype, 'getCrossDomainMessage').resolves('0x5678');
+      //const contractStub = sinon.stub(Contract.prototype, 'getCrossDomainMessage').resolves('0x5678');
+      const contractStub = sinon.stub(Contract.prototype, 'getMessageRollingHash').resolves('0x5678');
 
       const result = await onchainHelpers.getCrossDomainMessageFromTx(providerStub as unknown as JsonRpcProvider, txHash, L1_MESSAGE_QUEUE_V2_PROXY_ADDR);
       expect(result).to.deep.equal({ queueIndex: 2n, l2TxHash: '0x5678' });

@@ -43,11 +43,12 @@ export class OnchainHelpers {
     const queueIndex = decodedLog[1];
 
     const l1MessageQueueABI = [
-      "function getCrossDomainMessage(uint256) view returns (bytes32)"
+      //"function getCrossDomainMessage(uint256) view returns (bytes32)",
+      "function getMessageRollingHash(uint256 queueIndex) external view returns (bytes32 hash)"
     ];
     const l1MessageQueue = new Contract(l1MessageQueueProxyAddress, l1MessageQueueABI, this.provider);
 
-    const l2TxHash = await l1MessageQueue.getCrossDomainMessage(queueIndex);
+    const l2TxHash = await l1MessageQueue.getMessageRollingHash(queueIndex);
 
     return { queueIndex, l2TxHash };
   }
