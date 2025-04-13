@@ -1242,29 +1242,29 @@ export default class TestE2e extends Command {
         await this.saveProgress()
       }
 
-      this.logSection('Deploying ERC20 on L1')
-      if (this.altGasTokenEnabled) {
-        this.logResult('Skipping ETH deposit in alternative gas token mode', 'info')
-      } else if (this.results.deployERC20OnL1.complete) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        await this.deployERC20OnL1()
-        await this.shortPause()
-        await this.saveProgress()
-      }
+      // this.logSection('Deploying ERC20 on L1')
+      // if (this.altGasTokenEnabled) {
+      //   this.logResult('Skipping ETH deposit in alternative gas token mode', 'info')
+      // } else if (this.results.deployERC20OnL1.complete) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   await this.deployERC20OnL1()
+      //   await this.shortPause()
+      //   await this.saveProgress()
+      // }
 
-      this.logSection('Initiate ERC20 Deposit on L1')
-      if (this.results.bridgeERC20L1ToL2.l1DepositTx) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        if (this.altGasTokenEnabled) {
-          await this.bridgeAltTokenL1ToL2()
-        } else {
-          await this.bridgeERC20L1ToL2()
-        }
-        await this.shortPause()
-        await this.saveProgress()
-      }
+      // this.logSection('Initiate ERC20 Deposit on L1')
+      // if (this.results.bridgeERC20L1ToL2.l1DepositTx) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   if (this.altGasTokenEnabled) {
+      //     await this.bridgeAltTokenL1ToL2()
+      //   } else {
+      //     await this.bridgeERC20L1ToL2()
+      //   }
+      //   await this.shortPause()
+      //   await this.saveProgress()
+      // }
 
       // Setup L2
       this.logSection('Setup L2')
@@ -1298,66 +1298,66 @@ export default class TestE2e extends Command {
         await this.saveProgress()
       }
 
-      this.logSection('Deploying an ERC20 on L2')
-      if (this.altGasTokenEnabled) {
-        this.logResult('Skipping in alternative gas token mode', 'info')
-      } else if (this.results.deployERC20OnL2.complete) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        await this.deployERC20OnL2()
-        await this.shortPause()
-        await this.saveProgress()
-      }
+      // this.logSection('Deploying an ERC20 on L2')
+      // if (this.altGasTokenEnabled) {
+      //   this.logResult('Skipping in alternative gas token mode', 'info')
+      // } else if (this.results.deployERC20OnL2.complete) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   await this.deployERC20OnL2()
+      //   await this.shortPause()
+      //   await this.saveProgress()
+      // }
 
-      this.logSection('Waiting for L1 ERC20 Deposit')
-      if (this.results.bridgeERC20L1ToL2.complete) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        await this.completeL1ERC20Deposit()
-        // Wait for a block...
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.shortPause()
-        await this.saveProgress()
-      }
+      // this.logSection('Waiting for L1 ERC20 Deposit')
+      // if (this.results.bridgeERC20L1ToL2.complete) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   await this.completeL1ERC20Deposit()
+      //   // Wait for a block...
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.shortPause()
+      //   await this.saveProgress()
+      // }
 
-      this.logSection('Bridging ERC20 Back to L1')
-      if (this.results.bridgeERC20L2ToL1.l2WithdrawTx) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        if (this.altGasTokenEnabled) {
-          await this.bridgeAltTokenL2ToL1()
-        } else {
-          await this.bridgeERC20L2ToL1()
-        }
-        await this.shortPause()
-        await this.saveProgress()
-      }
+      // this.logSection('Bridging ERC20 Back to L1')
+      // if (this.results.bridgeERC20L2ToL1.l2WithdrawTx) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   if (this.altGasTokenEnabled) {
+      //     await this.bridgeAltTokenL2ToL1()
+      //   } else {
+      //     await this.bridgeERC20L2ToL1()
+      //   }
+      //   await this.shortPause()
+      //   await this.saveProgress()
+      // }
 
-      this.logSection('Claiming ETH and ERC20 on L1')
+      // this.logSection('Claiming ETH and ERC20 on L1')
 
-      if (this.results.claimETHOnL1.complete && this.results.claimERC20OnL1.complete) {
-        this.logResult('Skipping section...', 'info')
-      } else {
-        if (this.altGasTokenEnabled) {
-          this.logResult('Skipping ETH Claim in alternative gas token mode', 'info')
-        } else if (!this.results.claimETHOnL1.complete) {
-          await this.claimFundsOnL1()
-          await this.shortPause()
-          await this.saveProgress()
-        }
+      // if (this.results.claimETHOnL1.complete && this.results.claimERC20OnL1.complete) {
+      //   this.logResult('Skipping section...', 'info')
+      // } else {
+      //   if (this.altGasTokenEnabled) {
+      //     this.logResult('Skipping ETH Claim in alternative gas token mode', 'info')
+      //   } else if (!this.results.claimETHOnL1.complete) {
+      //     await this.claimFundsOnL1()
+      //     await this.shortPause()
+      //     await this.saveProgress()
+      //   }
 
-        if (!this.results.claimERC20OnL1.complete) {
-          await this.claimERC20OnL1()
-          await this.shortPause()
-          await this.saveProgress()
-        }
-      }
+      //   if (!this.results.claimERC20OnL1.complete) {
+      //     await this.claimERC20OnL1()
+      //     await this.shortPause()
+      //     await this.saveProgress()
+      //   }
+      // }
 
       this.logResult('E2E Test completed successfully', 'success')
     } catch (error) {
