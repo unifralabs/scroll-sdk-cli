@@ -640,7 +640,6 @@ export default class TestE2e extends Command {
       if (!this.results.bridgeFundsL1ToL2.l2MessengerTx) {
         throw new BridgingError('L2 destination transaction hash is missing.')
       }
-      console.log("this.results.bridgeFundsL1ToL2",this.results.bridgeFundsL1ToL2)
       const spinner = ora('completeL1ETHDeposit Waiting for L2 transaction to be mined...').start()
 
       try {
