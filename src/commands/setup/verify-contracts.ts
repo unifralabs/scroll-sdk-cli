@@ -8,7 +8,7 @@ export default class ContractsVerification extends Command {
 
   static override examples = [
     '<%= config.bin %> <%= command.id %>',
-    '<%= config.bin %> <%= command.id %> --image-tag verify-200577d',
+    '<%= config.bin %> <%= command.id %> --image-tag verify-9b29d9b6dcea6828118c0ee63d208095265f3a03',
   ]
 
   static override flags = {
@@ -21,7 +21,7 @@ export default class ContractsVerification extends Command {
   private async fetchDockerTags(): Promise<string[]> {
     try {
       const response = await fetch(
-        'https://registry.hub.docker.com/v2/repositories/shuunifra/scroll-stack-contracts/tags?page_size=100',
+        'https://registry.hub.docker.com/v2/repositories/dogeos69/scroll-stack-contracts/tags?page_size=100',
       )
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -34,7 +34,7 @@ export default class ContractsVerification extends Command {
   }
 
   private async getDockerImageTag(providedTag: string | undefined): Promise<string> {
-    const defaultTag = 'verify-200577d'
+    const defaultTag = 'verify-9b29d9b6dcea6828118c0ee63d208095265f3a03'
 
     if (!providedTag) {
       return defaultTag
@@ -60,7 +60,7 @@ export default class ContractsVerification extends Command {
 
   private async runDockerCommand(imageTag: string): Promise<void> {
     const docker = new Docker()
-    const image = `shuunifra/scroll-stack-contracts:${imageTag}`
+    const image = `dogeos69/scroll-stack-contracts:${imageTag}`
 
     try {
       this.log(chalk.cyan('Pulling Docker Image...'))
