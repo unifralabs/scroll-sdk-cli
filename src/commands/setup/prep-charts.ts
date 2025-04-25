@@ -149,6 +149,10 @@ export default class SetupPrepCharts extends Command {
                   } else {
                     configKey = configMapping
                   }
+                  if(chartName === "l1-devnet" && key === "CHAIN_ID"){
+                    configKey = "general.CHAIN_ID_L1";
+                  }
+
                   const configValue = this.getConfigValue(configKey)
                   if (configValue !== undefined && configValue !== null) {
                     let newValue: string | string[]
@@ -156,10 +160,6 @@ export default class SetupPrepCharts extends Command {
                       newValue = JSON.stringify(configValue)
                     } else {
                       newValue = String(configValue)
-                    }
-
-                    if(chartName === "l1-devnet" && key === "CHAIN_ID"){
-                      continue;
                     }
                     if (newValue != value) {
                       changes.push({ key, oldValue: JSON.stringify(value), newValue: newValue })
