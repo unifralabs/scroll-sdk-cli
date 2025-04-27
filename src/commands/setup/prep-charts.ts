@@ -141,35 +141,35 @@ export default class SetupPrepCharts extends Command {
               // if (value === '' || value === '[""]' || value === '[]' ||
               //   (Array.isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === ''))) ||
               //   value === null || value === undefined) {
-                const configMapping = this.configMapping[key]
-                if (configMapping) {
-                  let configKey: string
-                  if (typeof configMapping === 'function') {
-                    configKey = configMapping(chartName, productionNumber)
-                  } else {
-                    configKey = configMapping
-                  }
-                  if(chartName === "l1-devnet" && key === "CHAIN_ID"){
-                    configKey = "general.CHAIN_ID_L1";
-                  }
-
-                  const configValue = this.getConfigValue(configKey)
-                  if (configValue !== undefined && configValue !== null) {
-                    let newValue: string | string[]
-                    if (Array.isArray(configValue)) {
-                      newValue = JSON.stringify(configValue)
-                    } else {
-                      newValue = String(configValue)
-                    }
-                    if (newValue != value) {
-                      changes.push({ key, oldValue: JSON.stringify(value), newValue: newValue })
-                      envData[key] = newValue
-                      updated = true
-                    }
-                  } else {
-                    this.log(chalk.yellow(`${chartName}: No value found for ${configKey}`))
-                  }
+              const configMapping = this.configMapping[key]
+              if (configMapping) {
+                let configKey: string
+                if (typeof configMapping === 'function') {
+                  configKey = configMapping(chartName, productionNumber)
+                } else {
+                  configKey = configMapping
                 }
+                if (chartName === "l1-devnet" && key === "CHAIN_ID") {
+                  configKey = "general.CHAIN_ID_L1";
+                }
+
+                const configValue = this.getConfigValue(configKey)
+                if (configValue !== undefined && configValue !== null) {
+                  let newValue: string | string[]
+                  if (Array.isArray(configValue)) {
+                    newValue = JSON.stringify(configValue)
+                  } else {
+                    newValue = String(configValue)
+                  }
+                  if (newValue != value) {
+                    changes.push({ key, oldValue: JSON.stringify(value), newValue: newValue })
+                    envData[key] = newValue
+                    updated = true
+                  }
+                } else {
+                  this.log(chalk.yellow(`${chartName}: No value found for ${configKey}`))
+                }
+              }
               //}
             }
           }
@@ -241,6 +241,34 @@ export default class SetupPrepCharts extends Command {
               }
             }
           }
+        }
+      }
+      /*
+      blockscout-stack.blockscout.ingress.annotations.nginx.ingress.kubernetes.io/cors-allow-origin:https://blockscout.scrollsdk
+      blockscout-stack.blockscout.ingress.hostname:blockscout.scrollsdk
+      blockscout-stack.frontend.env.NEXT_PUBLIC_API_HOST:blockscout.scrollsdk
+      blockscout-stack.frontend.ingress.annotations.nginx.ingress.kubernetes.io/cors-allow-origin: "https://blockscout.scrollsdk"
+      blockscout-stack.frontend.ingress.hostname: "blockscout.scrollsdk"
+      */
+      if (productionYaml["blockscout-stack"]) {
+        let ingressUpdated = false;
+        let blockscout_host = this.getConfigValue("ingress.BLOCKSCOUT_HOST");
+        let blockscout_url = `https://${blockscout_host}`;
+        if (productionYaml["blockscout-stack"].blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
+          productionYaml["blockscout-stack"].blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url
+        }
+
+        if (productionYaml["blockscout-stack"].blockscout.ingress.hostname) {
+          productionYaml["blockscout-stack"].blockscout.ingress.hostname = blockscout_host
+        }
+        if (productionYaml["blockscout-stack"].frontend.env.NEXT_PUBLIC_API_HOST) {
+          productionYaml["blockscout-stack"].frontend.env.NEXT_PUBLIC_API_HOST = blockscout_host
+        }
+        if (productionYaml["blockscout-stack"].frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
+          productionYaml["blockscout-stack"].frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url;
+        }
+        if (productionYaml["blockscout-stack"].frontend.ingress.hostname) {
+          productionYaml["blockscout-stack"].frontend.ingress.hostname = blockscout_host
         }
       }
 
