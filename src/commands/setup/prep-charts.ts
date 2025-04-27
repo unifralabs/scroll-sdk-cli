@@ -252,23 +252,40 @@ export default class SetupPrepCharts extends Command {
       */
       if (productionYaml["blockscout-stack"]) {
         let ingressUpdated = false;
+        const blockscout = productionYaml["blockscout-stack"].blockscout;
+        const frontend = productionYaml["blockscout-stack"].frontend;
         let blockscout_host = this.getConfigValue("ingress.BLOCKSCOUT_HOST");
-        let blockscout_url = `https://${blockscout_host}`;
-        if (productionYaml["blockscout-stack"].blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
-          productionYaml["blockscout-stack"].blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url
+        let blockscout_url = this.getConfigValue("frontend.EXTERNAL_EXPLORER_URI_L2");
+
+        if (blockscout?.ingress?.annotations?.["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
+          changes.push({ key: `ingress.blockscout.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]`, oldValue: blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"], newValue: blockscout_url });
+          blockscout.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url;
+          ingressUpdated = true;
         }
 
-        if (productionYaml["blockscout-stack"].blockscout.ingress.hostname) {
-          productionYaml["blockscout-stack"].blockscout.ingress.hostname = blockscout_host
+        if (blockscout?.ingress?.hostname) {
+          changes.push({ key: `ingress.blockscout.hostname`, oldValue: blockscout.ingress.hostname, newValue: blockscout_host });
+          blockscout.ingress.hostname = blockscout_host;
+          ingressUpdated = true;
         }
-        if (productionYaml["blockscout-stack"].frontend.env.NEXT_PUBLIC_API_HOST) {
-          productionYaml["blockscout-stack"].frontend.env.NEXT_PUBLIC_API_HOST = blockscout_host
+        if (frontend?.env?.NEXT_PUBLIC_API_HOST) {
+          changes.push({ key: `frontend.env.NEXT_PUBLIC_API_HOST`, oldValue: frontend.env.NEXT_PUBLIC_API_HOST, newValue: blockscout_host });
+          frontend.env.NEXT_PUBLIC_API_HOST = blockscout_host;
+          ingressUpdated = true;
         }
-        if (productionYaml["blockscout-stack"].frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
-          productionYaml["blockscout-stack"].frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url;
+        if (frontend?.ingress?.annotations?.["nginx.ingress.kubernetes.io/cors-allow-origin"]) {
+          changes.push({ key: `frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"]`, oldValue: frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"], newValue: blockscout_url });
+          frontend.ingress.annotations["nginx.ingress.kubernetes.io/cors-allow-origin"] = blockscout_url;
+          ingressUpdated = true;
         }
-        if (productionYaml["blockscout-stack"].frontend.ingress.hostname) {
-          productionYaml["blockscout-stack"].frontend.ingress.hostname = blockscout_host
+        if (frontend?.ingress?.hostname) {
+          changes.push({ key: `frontend.ingress.hostname`, oldValue: frontend.ingress.hostname, newValue: blockscout_host });
+          frontend.ingress.hostname = blockscout_host;
+          ingressUpdated = true;
+        }
+
+        if (ingressUpdated) {
+          updated = true;
         }
       }
 
