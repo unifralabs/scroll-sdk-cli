@@ -113,6 +113,8 @@ export default class SetupPrepCharts extends Command {
   }
 
   private async processProductionYaml(valuesDir: string): Promise<{ updated: number; skipped: number }> {
+
+
     const productionFiles = fs.readdirSync(valuesDir)
       .filter(file => file.endsWith('-production.yaml') || file.match(/-production-\d+\.yaml$/))
 
@@ -283,6 +285,86 @@ export default class SetupPrepCharts extends Command {
           frontend.ingress.hostname = blockscout_host;
           ingressUpdated = true;
         }
+        /*
+        INDEXER_SCROLL_L1_CHAIN_CONTRACT: ""
+        INDEXER_SCROLL_L1_BATCH_START_BLOCK: ""
+        INDEXER_SCROLL_L1_MESSENGER_CONTRACT: ""
+        INDEXER_SCROLL_L1_MESSENGER_START_BLOCK: ""
+        INDEXER_SCROLL_L2_MESSENGER_CONTRACT: ""
+        INDEXER_SCROLL_L2_GAS_ORACLE_CONTRACT: ""
+        INDEXER_SCROLL_L1_RPC: ""
+              INDEXER_SCROLL_L2_MESSENGER_START_BLOCK: 0
+      INDEXER_SCROLL_L1_ETH_GET_LOGS_RANGE_SIZE: 500
+      INDEXER_SCROLL_L2_ETH_GET_LOGS_RANGE_SIZE: 500
+        */
+        interface BlockscoutEnvMapping {
+          key: string;
+          configKey: string;
+          defaultValue?: string;
+        }
+
+        const BLOCKSCOUT_ENV_MAPPINGS: BlockscoutEnvMapping[] = [
+          {
+            key: 'INDEXER_SCROLL_L1_BATCH_START_BLOCK',
+            configKey: '',
+            defaultValue: '0'
+          },
+          {
+            key: 'INDEXER_SCROLL_L1_MESSENGER_START_BLOCK',
+            configKey: '',
+            defaultValue: '0'
+          },
+          {
+            key: 'INDEXER_SCROLL_L1_CHAIN_CONTRACT',
+            configKey: 'contractsFile.L1_SCROLL_CHAIN_PROXY_ADDR'
+          },
+          {
+            key: 'INDEXER_SCROLL_L1_MESSENGER_CONTRACT',
+            configKey: 'L1_SCROLL_MESSENGER_PROXY_ADDR'
+          },
+          {
+            key: 'INDEXER_SCROLL_L2_MESSENGER_CONTRACT',
+            configKey: 'L2_SCROLL_MESSENGER_PROXY_ADDR'
+          },
+          {
+            key: 'INDEXER_SCROLL_L2_GAS_ORACLE_CONTRACT',
+            configKey: 'L1_GAS_PRICE_ORACLE_ADDR'
+          },
+          {
+            key: 'INDEXER_SCROLL_L1_RPC',
+            configKey: 'general.L1_RPC_ENDPOINT'
+          },
+          {
+            key: 'INDEXER_SCROLL_L1_RPC',
+            configKey: 'L1_RPC_ENDPOINT',
+            defaultValue: '0'
+          }
+
+
+        ];
+        const benv = productionYaml["blockscout-stack"].blockscout.env;
+
+        BLOCKSCOUT_ENV_MAPPINGS.forEach(mapping => {
+          const { key, configKey, defaultValue } = mapping;
+
+          let newValue = this.getConfigValue(configKey);
+          if (!newValue) {
+            newValue = configKey ? this.contractsConfig[configKey] : defaultValue;
+          }
+
+          if (newValue !== undefined) {
+            changes.push({
+              key: `blockscout.env.${key}`,
+              oldValue: benv[key],
+              newValue: newValue
+            });
+            benv[key] = newValue;
+          } else {
+            this.log(chalk.yellow(`No value found for ${key}`));
+          }
+        });
+
+        updated = true;
 
         if (ingressUpdated) {
           updated = true;
