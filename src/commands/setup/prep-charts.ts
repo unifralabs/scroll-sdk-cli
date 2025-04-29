@@ -333,11 +333,6 @@ export default class SetupPrepCharts extends Command {
           {
             key: 'INDEXER_SCROLL_L1_RPC',
             configKey: 'general.L1_RPC_ENDPOINT'
-          },
-          {
-            key: 'INDEXER_SCROLL_L1_RPC',
-            configKey: 'L1_RPC_ENDPOINT',
-            defaultValue: '0'
           }
 
 
