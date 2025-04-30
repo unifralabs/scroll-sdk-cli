@@ -383,7 +383,13 @@ export default class SetupPushSecrets extends Command {
       }),
       path: await input({
         message: chalk.cyan('Enter Vault path:'),
-        default: "scroll"
+        default: "scroll",
+        validate: (value: string) => {
+          if (/^\d+$/.test(value)) {
+            return 'Path cannot be all numeric';
+          }
+          return true;
+        }
       }),
       version: await input({
         message: chalk.cyan('Enter Vault version:'),
