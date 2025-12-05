@@ -30,7 +30,7 @@ export default class SetupPrepCharts extends Command {
   private configMapping: Record<string, string | ((chartName: string, productionNumber: string) => string)> = {
     'SCROLL_L1_RPC': 'general.L1_RPC_ENDPOINT',
     'SCROLL_L2_RPC': 'general.L2_RPC_ENDPOINT',
-    'CHAIN_ID': 'general.CHAIN_ID_L2',
+    'CHAIN_ID': (chartName) => chartName === 'l1-devnet' ? 'general.CHAIN_ID_L1' : 'general.CHAIN_ID_L2',
     'CHAIN_ID_L1': 'general.CHAIN_ID_L1',
     'CHAIN_ID_L2': 'general.CHAIN_ID_L2',
     'L2GETH_L1_ENDPOINT': 'general.L1_RPC_ENDPOINT',
@@ -137,29 +137,41 @@ export default class SetupPrepCharts extends Command {
           if (configMapData && typeof configMapData === 'object' && 'data' in configMapData) {
             const envData = (configMapData as any).data
             for (const [key, value] of Object.entries(envData)) {
-              if (value === '' || value === '[""]' || value === '[]' ||
-                (Array.isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === ''))) ||
-                value === null || value === undefined) {
-                const configMapping = this.configMapping[key]
-                if (configMapping) {
-                  let configKey: string
-                  if (typeof configMapping === 'function') {
-                    configKey = configMapping(chartName, productionNumber)
+              const configMapping = this.configMapping[key]
+              if (configMapping) {
+                let configKey: string
+                if (typeof configMapping === 'function') {
+                  configKey = configMapping(chartName, productionNumber)
+                } else {
+                  configKey = configMapping
+                }
+                const configValue = this.getConfigValue(configKey)
+                if (configValue !== undefined && configValue !== null) {
+                  let newValue: string | string[]
+                  if (Array.isArray(configValue)) {
+                    newValue = JSON.stringify(configValue)
                   } else {
-                    configKey = configMapping
+                    newValue = String(configValue)
                   }
-                  const configValue = this.getConfigValue(configKey)
-                  if (configValue !== undefined && configValue !== null) {
-                    let newValue: string | string[]
-                    if (Array.isArray(configValue)) {
-                      newValue = JSON.stringify(configValue)
-                    } else {
-                      newValue = String(configValue)
-                    }
+
+                  let needsUpdate = false
+                  if (Array.isArray(value)) {
+                    if (JSON.stringify(value) !== newValue) needsUpdate = true
+                  } else {
+                    if (String(value) !== newValue) needsUpdate = true
+                  }
+
+                  if (needsUpdate) {
                     changes.push({ key, oldValue: JSON.stringify(value), newValue: newValue })
                     envData[key] = newValue
                     updated = true
-                  } else {
+                  }
+                } else {
+                  const isEmpty = (value === '' || value === '[""]' || value === '[]' ||
+                    (Array.isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === ''))) ||
+                    value === null || value === undefined)
+
+                  if (isEmpty) {
                     this.log(chalk.yellow(`${chartName}: No value found for ${configKey}`))
                   }
                 }
