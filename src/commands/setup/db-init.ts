@@ -37,6 +37,10 @@ export default class SetupDbInit extends Command {
       description: 'Update the port of current database values',
       required: false,
     }),
+    prefix: Flags.string({
+      description: 'Prefix for database names and users',
+      default: '',
+    }),
   }
 
   private conn: pg.Client | undefined;
@@ -253,10 +257,12 @@ export default class SetupDbInit extends Command {
       }
     }
 
+    const prefix = flags.prefix
+
     const databases = [
-      { name: 'scroll_chain_monitor', user: 'CHAIN_MONITOR' },
-      { name: 'scroll_rollup', user: 'ROLLUP_NODE' },
-      { name: 'scroll_bridge_history', user: 'BRIDGE_HISTORY' },
+      { key: 'CHAIN_MONITOR', name: `${prefix}scroll_chain_monitor`, user: `${prefix}CHAIN_MONITOR` },
+      { key: 'ROLLUP_NODE', name: `${prefix}scroll_rollup`, user: `${prefix}ROLLUP_NODE` },
+      { key: 'BRIDGE_HISTORY', name: `${prefix}scroll_bridge_history`, user: `${prefix}BRIDGE_HISTORY` },
     ]
 
     const createBlockscout = await confirm({
@@ -264,7 +270,7 @@ export default class SetupDbInit extends Command {
       default: !!existingConfig.db?.BLOCKSCOUT_DB_CONNECTION_STRING
     })
     if (createBlockscout) {
-      databases.push({ name: 'scroll_blockscout', user: 'BLOCKSCOUT' })
+      databases.push({ key: 'BLOCKSCOUT', name: `${prefix}scroll_blockscout`, user: `${prefix}BLOCKSCOUT` })
     }
 
     const createL1Explorer = await confirm({
@@ -272,7 +278,7 @@ export default class SetupDbInit extends Command {
       default: !!existingConfig.db?.L1_EXPLORER_DB_CONNECTION_STRING
     })
     if (createL1Explorer) {
-      databases.push({ name: 'scroll_l1explorer', user: 'L1_EXPLORER' })
+      databases.push({ key: 'L1_EXPLORER', name: `${prefix}scroll_l1explorer`, user: `${prefix}L1_EXPLORER` })
     }
 
     const dsnMap: Record<string, string> = {}
@@ -313,7 +319,7 @@ export default class SetupDbInit extends Command {
           this.log(chalk.blue(`Setting up database: ${db.name} for user: ${db.user}`))
 
           let dbPassword: string;
-          const existingDsn = existingConfig.db?.[`${db.user}_DB_CONNECTION_STRING`];
+          const existingDsn = existingConfig.db?.[`${db.key}_DB_CONNECTION_STRING`];
           if (existingDsn) {
             const keepExistingPassword = await confirm({
               message: `An existing password was found for ${db.user}. Do you want to keep it?`,
@@ -352,7 +358,7 @@ export default class SetupDbInit extends Command {
           const dsn = `postgres://${db.user.toLowerCase()}:${dbPassword}@${this.vpcHost}:${this.vpcPort}/${db.name}?sslmode=require`
           this.log(chalk.cyan(`DSN for ${db.user}:\n${dsn}`))
 
-          dsnMap[db.user] = dsn
+          dsnMap[db.key] = dsn
         }
       }
 
