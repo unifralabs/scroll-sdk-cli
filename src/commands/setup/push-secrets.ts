@@ -135,9 +135,11 @@ class AWSSecretService implements SecretService {
 
 class HashicorpVaultDevService implements SecretService {
   private debug: boolean
+  private path: string
 
-  constructor(debug: boolean) {
+  constructor(debug: boolean, path: string) {
     this.debug = debug
+    this.path = path
   }
 
   private async runCommand(command: string): Promise<string> {
@@ -196,7 +198,7 @@ class HashicorpVaultDevService implements SecretService {
       .map(([key, value]) => `${key}='${value.replace(/'/g, "'\\''")}'`)
       .join(' ')
 
-    const command = `vault kv put scroll/${secretName} ${kvPairs}`
+    const command = `vault kv put ${this.path}/${secretName} ${kvPairs}`
 
     if (this.debug) {
       console.log(chalk.yellow('--- Debug Output ---'))
@@ -207,9 +209,9 @@ class HashicorpVaultDevService implements SecretService {
 
     try {
       await this.runCommand(command)
-      console.log(chalk.green(`Successfully pushed secret: scroll/${secretName}`))
+      console.log(chalk.green(`Successfully pushed secret: ${this.path}/${secretName}`))
     } catch (error) {
-      console.error(chalk.red(`Failed to push secret: scroll/${secretName}`))
+      console.error(chalk.red(`Failed to push secret: ${this.path}/${secretName}`))
       console.error(chalk.red(`Error: ${error}`))
     }
   }
@@ -218,7 +220,7 @@ class HashicorpVaultDevService implements SecretService {
     try {
       const jsonContent = JSON.parse(content);
       const escapedJson = JSON.stringify(jsonContent).replace(/'/g, "'\\''");
-      const command = `vault kv put scroll/${secretName} migrate-db.json='${escapedJson}'`;
+      const command = `vault kv put ${this.path}/${secretName} migrate-db.json='${escapedJson}'`;
 
       if (this.debug) {
         console.log(chalk.yellow('--- Debug Output ---'));
@@ -228,9 +230,9 @@ class HashicorpVaultDevService implements SecretService {
       }
 
       await this.runCommand(command);
-      console.log(chalk.green(`Successfully pushed JSON secret: scroll/${secretName}`));
+      console.log(chalk.green(`Successfully pushed JSON secret: ${this.path}/${secretName}`));
     } catch (error) {
-      console.error(chalk.red(`Failed to push JSON secret: scroll/${secretName}`));
+      console.error(chalk.red(`Failed to push JSON secret: ${this.path}/${secretName}`));
       console.error(chalk.red(`Error: ${error}`));
     }
   }
@@ -246,26 +248,26 @@ class HashicorpVaultDevService implements SecretService {
     }
 
     // Check if the KV secrets engine is already enabled
-    const isEnabled = await this.isSecretEngineEnabled('scroll')
+    const isEnabled = await this.isSecretEngineEnabled(this.path)
     if (!isEnabled) {
       // Enable the KV secrets engine only if it's not already enabled
       try {
-        await this.runCommand("vault secrets enable -path=scroll kv-v2")
-        console.log(chalk.green("KV secrets engine enabled at path 'scroll'"))
+        await this.runCommand(`vault secrets enable -path=${this.path} kv-v2`)
+        console.log(chalk.green(`KV secrets engine enabled at path '${this.path}'`))
       } catch (error: unknown) {
         if (error instanceof Error) {
           // If the error is about the path already in use, we can ignore it
-          if (!error.message.includes("path is already in use at scroll/")) {
+          if (!error.message.includes(`path is already in use at ${this.path}/`)) {
             throw error
           }
-          console.log(chalk.yellow("KV secrets engine already enabled at path 'scroll'"))
+          console.log(chalk.yellow(`KV secrets engine already enabled at path '${this.path}'`))
         } else {
           // If it's not an Error instance, rethrow it
           throw error
         }
       }
     } else {
-      console.log(chalk.yellow("KV secrets engine already enabled at path 'scroll'"))
+      console.log(chalk.yellow(`KV secrets engine already enabled at path '${this.path}'`))
     }
 
     const secretsDir = path.join(process.cwd(), 'secrets')
@@ -274,7 +276,7 @@ class HashicorpVaultDevService implements SecretService {
     const jsonFiles = fs.readdirSync(secretsDir).filter(file => file.endsWith('.json'))
     for (const file of jsonFiles) {
       const secretName = path.basename(file, '.json')
-      console.log(chalk.cyan(`Processing JSON secret: scroll/${secretName}`))
+      console.log(chalk.cyan(`Processing JSON secret: ${this.path}/${secretName}`))
       const content = await fs.promises.readFile(path.join(secretsDir, file), 'utf-8')
       await this.pushJsonToVault(secretName, content)
     }
@@ -290,7 +292,7 @@ class HashicorpVaultDevService implements SecretService {
         const data = await this.convertEnvToDict(path.join(secretsDir, file))
         l2SequencerSecrets = { ...l2SequencerSecrets, ...data }
       } else {
-        console.log(chalk.cyan(`Processing ENV secret: scroll/${secretName}`))
+        console.log(chalk.cyan(`Processing ENV secret: ${this.path}/${secretName}`))
         const data = await this.convertEnvToDict(path.join(secretsDir, file))
         await this.pushToVault(secretName, data)
       }
@@ -298,7 +300,7 @@ class HashicorpVaultDevService implements SecretService {
 
     // Push combined L2 Sequencer secrets
     if (Object.keys(l2SequencerSecrets).length > 0) {
-      console.log(chalk.cyan(`Processing combined L2 Sequencer secrets: scroll/l2-sequencer-secret-env`))
+      console.log(chalk.cyan(`Processing combined L2 Sequencer secrets: ${this.path}/l2-sequencer-secret-env`))
       await this.pushToVault('l2-sequencer-secret-env', l2SequencerSecrets)
     }
 
@@ -370,17 +372,10 @@ export default class SetupPushSecrets extends Command {
     }
   }
 
-  private async updateProductionYaml(provider: string): Promise<void> {
+  private async updateProductionYaml(provider: string, credentials: Record<string, string>): Promise<void> {
     const valuesDir = path.join(process.cwd(), this.flags['values-dir']);
     if (!fs.existsSync(valuesDir)) {
       this.error(chalk.red(`Values directory not found at ${valuesDir}`));
-    }
-
-    let credentials: Record<string, string>;
-    if (provider === 'vault') {
-      credentials = await this.getVaultCredentials();
-    } else {
-      credentials = await this.getAWSCredentials();
     }
 
     const yamlFiles = fs.readdirSync(valuesDir).filter(file =>
@@ -471,13 +466,15 @@ export default class SetupPushSecrets extends Command {
 
     let service: SecretService
     let provider: string
+    let credentials: Record<string, string>
 
     if (secretService === 'aws') {
-      const awsCredentials = await this.getAWSCredentials()
-      service = new AWSSecretService(awsCredentials.secretRegion, awsCredentials.prefixName, flags.debug)
+      credentials = await this.getAWSCredentials()
+      service = new AWSSecretService(credentials.secretRegion, credentials.prefixName, flags.debug)
       provider = 'aws'
     } else if (secretService === 'vault') {
-      service = new HashicorpVaultDevService(flags.debug)
+      credentials = await this.getVaultCredentials()
+      service = new HashicorpVaultDevService(flags.debug, credentials.path)
       provider = 'vault'
     } else {
       this.error(chalk.red('Invalid secret service selected'))
@@ -492,7 +489,7 @@ export default class SetupPushSecrets extends Command {
       })
 
       if (shouldUpdateYaml) {
-        await this.updateProductionYaml(provider)
+        await this.updateProductionYaml(provider, credentials)
         this.log(chalk.green('Production YAML files updated successfully'))
       } else {
         this.log(chalk.yellow('Skipped updating production YAML files'))

@@ -397,6 +397,9 @@ export default class SetupPrepCharts extends Command {
     // Validate Makefile
     await this.validateMakefile(skipAuthCheck)
 
+    // Generate replica files from templates
+    await this.generateReplicas(flags['values-dir'])
+
     // Process production.yaml files
     const valuesDir = flags['values-dir']
     const { updated, skipped } = await this.processProductionYaml(valuesDir)
@@ -405,5 +408,56 @@ export default class SetupPrepCharts extends Command {
     this.log(chalk.yellow(`Skipped ${skipped} chart(s).`))
 
     this.log('Chart preparation completed.')
+  }
+
+  private async generateReplicas(valuesDir: string): Promise<void> {
+    const charts = ['l2-sequencer', 'l2-bootnode']
+
+    for (const chart of charts) {
+      const templatePath = path.join(valuesDir, `${chart}-production.yaml`)
+      if (!fs.existsSync(templatePath)) {
+        continue
+      }
+
+      const templateContent = fs.readFileSync(templatePath, 'utf-8')
+      const indices: number[] = []
+
+      // Determine indices based on chart type and config
+      if (chart === 'l2-sequencer') {
+        // Index 0 is always assumed for sequencer if the section exists
+        if (this.configData.sequencer) {
+          indices.push(0)
+          // Check for other indices
+          if (this.configData.sequencer) {
+            Object.keys(this.configData.sequencer).forEach(key => {
+              const match = key.match(/^sequencer-(\d+)$/)
+              if (match) {
+                indices.push(parseInt(match[1]))
+              }
+            })
+          }
+        }
+      } else if (chart === 'l2-bootnode') {
+        if (this.configData.bootnode) {
+          Object.keys(this.configData.bootnode).forEach(key => {
+            const match = key.match(/^bootnode-(\d+)$/)
+            if (match) {
+              indices.push(parseInt(match[1]))
+            }
+          })
+        }
+      }
+
+      // Generate files
+      for (const index of indices) {
+        const replicaPath = path.join(valuesDir, `${chart}-production-${index}.yaml`)
+        // We verify if we need to overwrite or just ensure it exists. 
+        // The requirement implies we should replicate the template.
+        // We will overwrite to ensure it matches the template.
+        const replicaContent = templateContent.replace(/__INDEX__/g, index.toString())
+        fs.writeFileSync(replicaPath, replicaContent)
+        this.log(chalk.blue(`Generated ${chart}-production-${index}.yaml from template`))
+      }
+    }
   }
 }
