@@ -7,6 +7,7 @@ import * as yaml from 'js-yaml'
 import * as toml from '@iarna/toml'
 import { confirm } from '@inquirer/prompts'
 import chalk from 'chalk'
+import { YAML_DUMP_OPTIONS } from '../../utils/yaml-constants.js'
 
 const execAsync = promisify(exec)
 
@@ -298,12 +299,7 @@ export default class SetupPrepCharts extends Command {
 
         const shouldUpdate = await confirm({ message: `Do you want to apply these changes to ${file}?` })
         if (shouldUpdate) {
-          const yamlString = yaml.dump(productionYaml, {
-            lineWidth: -1,
-            noRefs: true,
-            quotingType: '"',
-            forceQuotes: true,
-          })
+          const yamlString = yaml.dump(productionYaml, YAML_DUMP_OPTIONS)
 
           fs.writeFileSync(yamlPath, yamlString)
           this.log(chalk.green(`Updated ${file}`))

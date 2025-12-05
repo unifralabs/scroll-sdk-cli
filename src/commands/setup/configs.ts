@@ -8,6 +8,7 @@ import { confirm, input, select } from '@inquirer/prompts'
 import { ethers } from 'ethers'
 import * as yaml from 'js-yaml'
 import * as childProcess from 'child_process'
+import { YAML_DUMP_OPTIONS } from '../../utils/yaml-constants.js'
 
 export default class SetupConfigs extends Command {
   static override description = 'Generate configuration files and create environment files for services'
@@ -566,7 +567,7 @@ export default class SetupConfigs extends Command {
       const existingContent = fs.readFileSync(scrollMonitorProductionFilePath, 'utf8')
       const existingYaml = yaml.load(existingContent) as any
       existingYaml['kube-prometheus-stack'].additionalPrometheusRules = addedAlertRules
-      fs.writeFileSync(scrollMonitorProductionFilePath, yaml.dump(existingYaml, { indent: 2 }))
+      fs.writeFileSync(scrollMonitorProductionFilePath, yaml.dump(existingYaml, YAML_DUMP_OPTIONS))
     } catch {
       this.error(`generating balance-checker alert rules file failed`)
     }
@@ -603,7 +604,7 @@ export default class SetupConfigs extends Command {
         const yamlContent = {
           [file.key]: content,
         }
-        const yamlString = yaml.dump(yamlContent, { indent: 2 })
+        const yamlString = yaml.dump(yamlContent, YAML_DUMP_OPTIONS)
         fs.writeFileSync(targetPath, yamlString)
         this.log(chalk.green(`Processed file: ${file.target}`))
       } else {

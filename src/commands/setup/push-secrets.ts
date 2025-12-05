@@ -6,6 +6,7 @@ import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
 import { promisify } from 'util'
+import { YAML_DUMP_OPTIONS } from '../../utils/yaml-constants.js'
 
 const execAsync = promisify(exec)
 
@@ -444,7 +445,7 @@ export default class SetupPushSecrets extends Command {
       }
 
       if (updated) {
-        const newContent = yaml.dump(yamlContent, { lineWidth: -1, noRefs: true, quotingType: '"', forceQuotes: true });
+        const newContent = yaml.dump(yamlContent, YAML_DUMP_OPTIONS);
         fs.writeFileSync(yamlPath, newContent);
         this.log(chalk.green(`Updated externalSecrets provider in ${chalk.cyan(yamlFile)}`));
       } else {
