@@ -432,10 +432,10 @@ export default class SetupPushSecrets extends Command {
           }
 
           // Update remoteRef for l2-sequencer secrets
-          if (secretName.match(/^l2-sequencer-\d+-secret$/)) {
+          if (secretName.match(/^l2-sequencer-secret-\d+-env$/)) {
             for (const data of secret.data) {
               if (data.remoteRef && data.remoteRef.key) {
-                data.remoteRef.key = 'l2-sequencer-secret';
+                data.remoteRef.key = `${credentials.path}/l2-sequencer-secret-env`;
                 updated = true;
               }
             }
